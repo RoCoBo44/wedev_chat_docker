@@ -1,0 +1,42 @@
+version: '3.7'
+services:
+  database:
+    image: postgres
+    container_name: wedb
+    environment:
+    - POSTGRES_DB=WeDevelop_Task
+    - POSTGRES_USER=postgres
+    - POSTGRES_PASSWORD=pass
+    volumes: 
+    - pg_data:/var/lib/postgresql/data/
+    - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+    - "5432:5432"
+  backend:
+    build: ./Backend
+    volumes:
+    - ./Backend:/usr/src/app
+    - ./usr/src/app/node_modules
+    - ./Backend/src/config/config-docker.json:/usr/src/app/src/config/config.json
+    ports:
+    - "3011:3001"
+    depends_on:
+      - database
+    links:
+      - database
+  frontend:
+    build: ./Frontend/chat-frontend
+    environment:
+    - REACT_APP_PORT=3011
+    volumes:
+    - ./Frontend/chat-frontend:/usr/src/front
+    - ./usr/src/front/node_modules
+    ports:
+    - "3012:3002"
+    depends_on:
+      - backend
+    links:
+      - backend
+volumes:
+  pg_data: 
+    driver: local
